@@ -1,0 +1,121 @@
+<div class="chat-container">
+  <!-- Enhanced Header with Docker & Kubernetes branding -->
+  <div class="chat-header">
+    <div class="header-content">
+      <div class="logo-container">
+        <div class="docker-icon">🐳</div>
+        <div class="k8s-icon"></div>
+      </div>
+      <span class="title">DevOps Assistant</span>
+      <div class="status-indicator">
+        <div class="status-dot" [class.offline]="!isOnline()"></div>
+        <span>{{ isOnline() ? 'Online' : 'Connecting...' }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Messages Container -->
+  <div class="chat-messages" #scrollMe>
+    <!-- Regular Messages -->
+    <div 
+      *ngFor="let msg of displayMessages();" 
+      [ngClass]="msg.cssClass" 
+      class="chat-bubble">
+      
+      <!-- Message Content with Markdown Support -->
+      <div [innerHTML]="msg.content | markdown"></div>
+      
+      <!-- Copy Button for Commands -->
+
+      
+      <!-- Message Metadata -->
+      <div class="message-meta" [ngClass]="msg.cssClass">
+        <div *ngIf="!msg.fromUser" class="bot-avatar">🤖</div>
+        <span>{{ msg.fromUser ? 'You' : 'Assistant' }}</span>
+        <span>•</span>
+        <span>{{ msg.timestamp }}</span>
+      </div>
+    </div>
+
+    <!-- Typing Indicator -->
+    <div *ngIf="typing()" class="chat-bubble bot typing-message">
+      <div class="typing-indicator">
+        <div class="bot-avatar">🤖</div>
+        <span>Assistant is typing</span>
+        <div class="typing-dots">
+          <div class="typing-dot"></div>
+          <div class="typing-dot"></div>
+          <div class="typing-dot"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Input Form -->
+  <form class="chat-composer" (ngSubmit)="onSend()">
+    <div class="input-container">
+      <!-- Auto-resizing Textarea -->
+      <textarea 
+        #messageInput
+        [value]="input()" 
+        (input)="onInputChange($event)"
+        (keydown)="onKeydown($event)"
+        name="msg"
+        placeholder="Ask me about Docker, Kubernetes, or paste your commands..."
+        rows="1"
+        class="chat-input"
+        [disabled]="typing()"
+        appCodeHighlight>
+      </textarea>
+
+      <!-- Send Button -->
+      <button 
+        type="submit" 
+        class="send-btn" 
+        [disabled]="!canSend()"
+        [class.loading]="typing()">
+        <span *ngIf="!typing()">➤</span>
+        <span *ngIf="typing()">⟳</span>
+      </button>
+    </div>
+
+    <!-- Command Suggestions -->
+    <div class="suggestions" *ngIf="!typing() && input().length === 0">
+      <div 
+        *ngFor="let suggestion of suggestions" 
+        class="suggestion"
+        (click)="insertSuggestion(suggestion)"
+        [title]="'Click to use: ' + suggestion">
+        {{ suggestion }}
+      </div>
+    </div>
+  </form>
+
+  <!-- Optional: Chat Controls -->
+  <div class="chat-controls" *ngIf="messages().length > 1">
+    <button 
+      type="button" 
+      class="control-btn secondary"
+      (click)="clearChat()"
+      title="Clear chat history">
+      🗑️ Clear
+    </button>
+    
+    <button 
+      type="button" 
+      class="control-btn secondary"
+      (click)="exportChat()"
+      title="Export chat history">
+      📥 Export
+    </button>
+    
+    <button 
+      type="button" 
+      class="control-btn secondary"
+      (click)="checkConnection()"
+      title="Test connection"
+      [disabled]="!isOnline()">
+      🔄 {{ isOnline() ? 'Test' : 'Connecting...' }}
+    </button>
+  </div>
+</div>
